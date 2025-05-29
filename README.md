@@ -1,5 +1,5 @@
 # 📦 Import Database ke XAMPP secara Manual
-<img src="https://media1.tenor.com/m/-f4MdQKmOBIAAAAC/gundam-gundam-seed.gif">
+<img src="https://media1.tenor.com/m/3JOgC51ENE0AAAAd/punishing-gray-raven-lucia-pyroath.gif">
 ![Import Database]
 
 > Caranya tinggal download dan langsung ke direktori `XAMPP`, di `localdisk/xampp/mysql/data` paste di situ cuy.
