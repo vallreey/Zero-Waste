@@ -139,17 +139,21 @@ public class ZeroWaste extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         spinnerJumlah = new javax.swing.JSpinner();
         jLabel3 = new javax.swing.JLabel();
-        txtKadaluarsa = new javax.swing.JTextField();
         btnTambah = new javax.swing.JButton();
         btnSave = new javax.swing.JButton();
         btnDelete = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         tabelStok = new javax.swing.JTable();
         jLabel4 = new javax.swing.JLabel();
+        btnDelete1 = new javax.swing.JButton();
+        btnDelete2 = new javax.swing.JButton();
+        btnSave1 = new javax.swing.JButton();
+        dateChooserKadaluarsa = new com.toedter.calendar.JDateChooser();
 
         jMenuItem1.setText("jMenuItem1");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setBackground(new java.awt.Color(196, 225, 230));
 
         jLabel1.setText("Nama Bahan");
 
@@ -161,13 +165,9 @@ public class ZeroWaste extends javax.swing.JFrame {
 
         jLabel2.setText("Jumlah");
 
-        jLabel3.setText("Kadaluarsa");
+        spinnerJumlah.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
 
-        txtKadaluarsa.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtKadaluarsaActionPerformed(evt);
-            }
-        });
+        jLabel3.setText("Kadaluarsa");
 
         btnTambah.setText("Tambah");
         btnTambah.addActionListener(new java.awt.event.ActionListener() {
@@ -177,6 +177,11 @@ public class ZeroWaste extends javax.swing.JFrame {
         });
 
         btnSave.setText("Save");
+        btnSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSaveActionPerformed(evt);
+            }
+        });
 
         btnDelete.setText("Delete");
         btnDelete.addActionListener(new java.awt.event.ActionListener() {
@@ -190,12 +195,33 @@ public class ZeroWaste extends javax.swing.JFrame {
 
             },
             new String [] {
-                "Nama Bahan", "Jumlah", "Tanggal Kadaluarsa"
+                "ID", "Nama Bahan", "Jumlah", "Tanggal Kadaluarsa", "Jenis Bahan"
             }
         ));
         jScrollPane1.setViewportView(tabelStok);
 
         jLabel4.setText("ZeroWasteSmartKitchen");
+
+        btnDelete1.setText("Clear");
+        btnDelete1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnClear(evt);
+            }
+        });
+
+        btnDelete2.setText("Edit");
+        btnDelete2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEdit(evt);
+            }
+        });
+
+        btnSave1.setText("Cetak");
+        btnSave1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCetak(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -203,58 +229,74 @@ public class ZeroWaste extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(spinnerJumlah, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(21, 21, 21)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1)
-                            .addComponent(jLabel3))
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(btnTambah)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                    .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel3, javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(btnTambah, javax.swing.GroupLayout.DEFAULT_SIZE, 155, Short.MAX_VALUE)
+                                    .addComponent(btnDelete2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                 .addGap(18, 18, 18)
-                                .addComponent(btnDelete)
-                                .addGap(18, 18, 18)
-                                .addComponent(btnSave))
-                            .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(NamaBahan, javax.swing.GroupLayout.DEFAULT_SIZE, 142, Short.MAX_VALUE)
-                                    .addComponent(txtKadaluarsa))
-                                .addGap(36, 36, 36)
-                                .addComponent(jLabel2)
-                                .addGap(18, 18, 18)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel4)
-                                    .addComponent(spinnerJumlah, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                                    .addComponent(NamaBahan)
+                                    .addComponent(dateChooserKadaluarsa, javax.swing.GroupLayout.DEFAULT_SIZE, 171, Short.MAX_VALUE)
+                                    .addComponent(btnDelete, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(btnDelete1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                            .addComponent(btnSave, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnSave1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(221, 221, 221)))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(55, 55, 55)
+                        .addGap(14, 14, 14)
+                        .addComponent(jLabel4))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(18, 18, 18)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(257, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 37, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(NamaBahan, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2)
-                    .addComponent(spinnerJumlah, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(29, 29, 29)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(txtKadaluarsa, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(30, 30, 30)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnTambah)
-                    .addComponent(btnSave)
-                    .addComponent(btnDelete))
-                .addGap(39, 39, 39)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(68, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 53, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel1)
+                            .addComponent(NamaBahan, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel2)
+                            .addComponent(spinnerJumlah, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jLabel3)
+                            .addComponent(dateChooserKadaluarsa, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(66, 66, 66)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(btnTambah, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnDelete, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(btnDelete1, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnDelete2, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(12, 12, 12)
+                        .addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnSave1, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(63, Short.MAX_VALUE))
         );
+
+        btnDelete1.getAccessibleContext().setAccessibleName("Clear");
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -262,10 +304,6 @@ public class ZeroWaste extends javax.swing.JFrame {
     private void NamaBahanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_NamaBahanActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_NamaBahanActionPerformed
-
-    private void txtKadaluarsaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtKadaluarsaActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtKadaluarsaActionPerformed
 
     private void btnTambahActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTambahActionPerformed
       
@@ -298,6 +336,84 @@ public class ZeroWaste extends javax.swing.JFrame {
         hapusData(id);
     }//GEN-LAST:event_btnDeleteActionPerformed
 
+    private void btnClear(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClear
+        NamaBahan.setText("");
+        spinnerJumlah.setValue(0);
+        dateChooserKadaluarsa.setDate(null);
+    }//GEN-LAST:event_btnClear
+private Integer idYangSedangDiedit = null;
+    private void btnEdit(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEdit
+            int row = tabelStok.getSelectedRow();
+    if (row == -1) {
+        JOptionPane.showMessageDialog(this, "Pilih baris dari tabel yang ingin diedit");
+        return;
+    }
+
+    String idStr = tabelStok.getValueAt(row, 0).toString();
+    String nama = tabelStok.getValueAt(row, 1).toString();
+    String jumlahStr = tabelStok.getValueAt(row, 2).toString();
+    String tanggalStr = tabelStok.getValueAt(row, 3).toString();
+
+    idYangSedangDiedit = Integer.parseInt(idStr);
+    NamaBahan.setText(nama);
+    spinnerJumlah.setValue(Integer.parseInt(jumlahStr));
+
+    // Konversi String ke java.util.Date
+    try {
+        java.util.Date tanggal = java.sql.Date.valueOf(tanggalStr);
+        dateChooserKadaluarsa.setDate(tanggal);
+    } catch (IllegalArgumentException e) {
+        dateChooserKadaluarsa.setDate(null);
+    }
+
+    }//GEN-LAST:event_btnEdit
+
+    private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
+            String nama = NamaBahan.getText();
+    int jumlah = (int) spinnerJumlah.getValue();
+    java.util.Date utilDate = dateChooserKadaluarsa.getDate();
+
+    if (nama.isEmpty() || utilDate == null) {
+        JOptionPane.showMessageDialog(this, "Nama bahan dan tanggal kadaluarsa harus diisi");
+        return;
+    }
+
+    String tanggal = new java.sql.Date(utilDate.getTime()).toString();
+
+    if (idYangSedangDiedit != null) {
+        // Mode update
+        try {
+            String sql = "UPDATE stok_bahan SET nama_bahan = ?, jumlah = ?, kadaluarsa = ? WHERE id = ?";
+            PreparedStatement pst = conn.prepareStatement(sql);
+            pst.setString(1, nama);
+            pst.setInt(2, jumlah);
+            pst.setDate(3, java.sql.Date.valueOf(tanggal));
+            pst.setInt(4, idYangSedangDiedit);
+            pst.executeUpdate();
+            pst.close();
+
+            JOptionPane.showMessageDialog(this, "Data berhasil diupdate");
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal update data:\n" + e.getMessage());
+        }
+
+        idYangSedangDiedit = null;
+    } else {
+        // Mode tambah
+        tambahData(nama, jumlah, tanggal);
+    }
+
+    loadData();
+    NamaBahan.setText("");
+    spinnerJumlah.setValue(0);
+    dateChooserKadaluarsa.setDate(null);
+
+    }//GEN-LAST:event_btnSaveActionPerformed
+
+    private void btnCetak(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCetak
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnCetak
+
     /**
      * @param args the command line arguments
      */
@@ -315,12 +431,15 @@ public class ZeroWaste extends javax.swing.JFrame {
             new ZeroWaste().setVisible(true);
         });
     }
-private com.toedter.calendar.JDateChooser dateChooserKadaluarsa;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField NamaBahan;
     private javax.swing.JButton btnDelete;
+    private javax.swing.JButton btnDelete1;
+    private javax.swing.JButton btnDelete2;
     private javax.swing.JButton btnSave;
+    private javax.swing.JButton btnSave1;
     private javax.swing.JButton btnTambah;
+    private com.toedter.calendar.JDateChooser dateChooserKadaluarsa;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -329,6 +448,5 @@ private com.toedter.calendar.JDateChooser dateChooserKadaluarsa;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSpinner spinnerJumlah;
     private javax.swing.JTable tabelStok;
-    private javax.swing.JTextField txtKadaluarsa;
     // End of variables declaration//GEN-END:variables
 }
