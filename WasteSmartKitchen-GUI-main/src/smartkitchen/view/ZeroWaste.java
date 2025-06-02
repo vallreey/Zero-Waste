@@ -4,40 +4,27 @@
  */
 package smartkitchen.view;
 
-import javax.swing.table.DefaultTableModel;
-import java.sql.*;
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.Desktop;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.sql.*;
 import com.toedter.calendar.JDateChooser;
-
+import org.apache.poi.xwpf.usermodel.*;
 
 /**
  *
- * @author ASUS
+ * @author Astral Express
  */
 public class ZeroWaste extends javax.swing.JFrame {
-    private Connection conn;
-    
+    private final Connection conn;
 
-    /**
-     * Creates new form MainMenu
-     */
     public ZeroWaste() {
         initComponents();
-        connectDatabase();
+        DatabaseConnection db = new DatabaseConnection();
+        conn = db.getConnection();
         loadData();
-    }
-    
-    private void connectDatabase() {
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            String url = "jdbc:mysql://localhost:3306/smartkitchen?zeroDateTimeBehavior=CONVERT_TO_NULL&serverTimezone=UTC";
-            String user = "root";
-            String pass = "";
-            conn = DriverManager.getConnection(url, user, pass);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Gagal koneksi database:\n" + e.getMessage());
-            System.exit(0);
-        }
     }
 
     private void loadData() {
@@ -50,14 +37,31 @@ public class ZeroWaste extends javax.swing.JFrame {
             model.setRowCount(0);
 
             while (rs.next()) {
-                int id = rs.getInt("id");
-                String nama = rs.getString("nama_bahan");
-                int jumlah = rs.getInt("jumlah");
-                Date kadaluarsa = rs.getDate("kadaluarsa");
-                String tanggal = (kadaluarsa != null) ? kadaluarsa.toString() : "";
+                int id              = rs.getInt("id");
+                String nama         = rs.getString("nama_bahan");
+                String jenis        = rs.getString("jenis_bahan");
+                int jumlah          = rs.getInt("jumlah");
+                String satuan       = rs.getString("satuan");
+                Date kadalDb        = rs.getDate("kadaluarsa");
+                Date masukDb        = rs.getDate("tanggal_masuk");
+                String tanggalMasuk = (masukDb != null) ? masukDb.toString() : "";
+                String tanggalKadal = (kadalDb != null) ? kadalDb.toString() : "";
+                String lokasi       = rs.getString("lokasi");
+                String ket          = rs.getString("keterangan");
 
-                model.addRow(new Object[]{id, nama, jumlah, tanggal});
+                model.addRow(new Object[]{
+                    id,
+                    nama,
+                    jenis,
+                    jumlah,
+                    satuan,
+                    tanggalMasuk,
+                    tanggalKadal,
+                    lokasi,
+                    ket
+                });
             }
+
             rs.close();
             st.close();
         } catch (SQLException e) {
@@ -65,21 +69,26 @@ public class ZeroWaste extends javax.swing.JFrame {
         }
     }
     
-    private void tambahData(String nama, int jumlah, String kadaluarsa) {
+    private void tambahData(String nama, String jenis, int jumlah, String satuan,
+                            String kadaluarsa, String lokasi, String keterangan) {
         try {
-            String sql = "INSERT INTO stok_bahan (nama_bahan, jumlah, kadaluarsa) VALUES (?, ?, ?)";
+            String sql = "INSERT INTO stok_bahan "
+                       + "(nama_bahan, jenis_bahan, jumlah, satuan, kadaluarsa, lokasi, keterangan) "
+                       + "VALUES (?, ?, ?, ?, ?, ?, ?)";
             PreparedStatement pst = conn.prepareStatement(sql);
-
             pst.setString(1, nama);
-            pst.setInt(2, jumlah);
+            pst.setString(2, jenis);
+            pst.setInt(3, jumlah);
+            pst.setString(4, satuan);
 
-            Date tanggal = null;
-            try {
-                tanggal = Date.valueOf(kadaluarsa);
-            } catch (IllegalArgumentException ex) {
-                tanggal = null;
+            if (kadaluarsa != null && !kadaluarsa.isEmpty()) {
+                pst.setDate(5, Date.valueOf(kadaluarsa));
+            } else {
+                pst.setNull(5, java.sql.Types.DATE);
             }
-            pst.setDate(3, tanggal);
+
+            pst.setString(6, lokasi);
+            pst.setString(7, keterangan);
 
             pst.executeUpdate();
             pst.close();
@@ -90,7 +99,7 @@ public class ZeroWaste extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Gagal tambah data:\n" + e.getMessage());
         }
     }
-
+    
     private void hapusData(String idStr) {
         try {
             int id = Integer.parseInt(idStr);
@@ -98,7 +107,12 @@ public class ZeroWaste extends javax.swing.JFrame {
             PreparedStatement pst = conn.prepareStatement(sql);
             pst.setInt(1, id);
 
-            int confirm = JOptionPane.showConfirmDialog(this, "Yakin ingin hapus data ID " + id + "?", "Konfirmasi Hapus", JOptionPane.YES_NO_OPTION);
+            int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Yakin ingin hapus data ID " + id + "?",
+                "Konfirmasi Hapus",
+                JOptionPane.YES_NO_OPTION
+            );
             if (confirm == JOptionPane.YES_OPTION) {
                 int rows = pst.executeUpdate();
                 if (rows > 0) {
@@ -113,6 +127,7 @@ public class ZeroWaste extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Gagal hapus data:\n" + e.getMessage());
         }
     }
+    
     private void resetAutoIncrement() {
     try {
         String sql = "ALTER TABLE stok_bahan AUTO_INCREMENT = 1";
@@ -147,8 +162,17 @@ public class ZeroWaste extends javax.swing.JFrame {
         jLabel4 = new javax.swing.JLabel();
         btnDelete1 = new javax.swing.JButton();
         btnDelete2 = new javax.swing.JButton();
-        btnSave1 = new javax.swing.JButton();
+        Cetak = new javax.swing.JButton();
         dateChooserKadaluarsa = new com.toedter.calendar.JDateChooser();
+        jLabel5 = new javax.swing.JLabel();
+        JenisBahan = new javax.swing.JTextField();
+        Exit = new javax.swing.JButton();
+        jLabel6 = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
+        Satuan = new javax.swing.JTextField();
+        jLabel8 = new javax.swing.JLabel();
+        Lokasi = new javax.swing.JTextField();
+        Keterangan = new javax.swing.JTextField();
 
         jMenuItem1.setText("jMenuItem1");
 
@@ -163,7 +187,7 @@ public class ZeroWaste extends javax.swing.JFrame {
             }
         });
 
-        jLabel2.setText("Jumlah");
+        jLabel2.setText("Satuan");
 
         spinnerJumlah.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
 
@@ -195,12 +219,14 @@ public class ZeroWaste extends javax.swing.JFrame {
 
             },
             new String [] {
-                "ID", "Nama Bahan", "Jumlah", "Tanggal Kadaluarsa", "Jenis Bahan"
+                "ID", "Nama Bahan", "Jenis Bahan", "Jumlah",
+                "Satuan","Tanggal Masuk", "Tanggal Kadaluarsa",
+                "Lokasi", "Keterangan"
             }
         ));
         jScrollPane1.setViewportView(tabelStok);
 
-        jLabel4.setText("ZeroWasteSmartKitchen");
+        jLabel4.setIcon(new javax.swing.ImageIcon("E:\\Bahan Figma\\Zero waste.png")); // NOI18N
 
         btnDelete1.setText("Clear");
         btnDelete1.addActionListener(new java.awt.event.ActionListener() {
@@ -216,10 +242,49 @@ public class ZeroWaste extends javax.swing.JFrame {
             }
         });
 
-        btnSave1.setText("Cetak");
-        btnSave1.addActionListener(new java.awt.event.ActionListener() {
+        Cetak.setText("Cetak");
+        Cetak.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnCetak(evt);
+            }
+        });
+
+        jLabel5.setText("Jenis Bahan");
+
+        JenisBahan.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                JenisBahanActionPerformed(evt);
+            }
+        });
+
+        Exit.setText("Exit");
+        Exit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ExitActionPerformed(evt);
+            }
+        });
+
+        jLabel6.setText("Tempat Menyimpan");
+
+        jLabel7.setText("Jumlah");
+
+        Satuan.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                SatuanActionPerformed(evt);
+            }
+        });
+
+        jLabel8.setText("Keterangan");
+
+        Lokasi.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                LokasiActionPerformed(evt);
+            }
+        });
+
+        Keterangan.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                KeteranganActionPerformed(evt);
             }
         });
 
@@ -227,76 +292,117 @@ public class ZeroWaste extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jLabel2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(spinnerJumlah, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createSequentialGroup()
+                            .addGap(518, 518, 518)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addComponent(Satuan, javax.swing.GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE)
+                                .addComponent(spinnerJumlah)))
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                            .addContainerGap()
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addGroup(layout.createSequentialGroup()
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                        .addComponent(btnTambah, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(btnDelete2, javax.swing.GroupLayout.PREFERRED_SIZE, 155, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGap(18, 18, 18)
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                        .addComponent(btnDelete, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(btnDelete1, javax.swing.GroupLayout.PREFERRED_SIZE, 171, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(btnSave, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(Cetak, javax.swing.GroupLayout.PREFERRED_SIZE, 344, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGap(127, 127, 127)))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(21, 21, 21)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addGap(49, 49, 49)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addComponent(Exit, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(101, 101, 101))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(15, 15, 15)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                                     .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel3, javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(btnTambah, javax.swing.GroupLayout.DEFAULT_SIZE, 155, Short.MAX_VALUE)
-                                    .addComponent(btnDelete2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addGap(18, 18, 18)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(NamaBahan)
-                                    .addComponent(dateChooserKadaluarsa, javax.swing.GroupLayout.DEFAULT_SIZE, 171, Short.MAX_VALUE)
-                                    .addComponent(btnDelete, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(btnDelete1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                            .addComponent(btnSave, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btnSave1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addGap(221, 221, 221)))
+                                    .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel6, javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel8, javax.swing.GroupLayout.Alignment.LEADING))
+                                .addGap(106, 106, 106)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                            .addComponent(NamaBahan)
+                                            .addComponent(dateChooserKadaluarsa, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                            .addComponent(JenisBahan, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 171, Short.MAX_VALUE)
+                                            .addComponent(Lokasi))
+                                        .addGap(30, 30, 30)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 68, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 68, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(Keterangan)
+                                        .addGap(33, 33, 33)))))))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(14, 14, 14)
-                        .addComponent(jLabel4))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(18, 18, 18)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 742, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel4))
+                .addGap(42, 42, 42))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 53, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(Exit, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap())
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel1)
-                            .addComponent(NamaBahan, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(NamaBahan, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel2)
-                            .addComponent(spinnerJumlah, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(Satuan, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(30, 30, 30)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel3)
-                            .addComponent(dateChooserKadaluarsa, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(66, 66, 66)
+                            .addComponent(dateChooserKadaluarsa, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(spinnerJumlah, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jLabel7)))
+                        .addGap(21, 21, 21)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(btnTambah, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(btnDelete, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(18, 18, 18)
+                            .addComponent(JenisBahan, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel5))
+                        .addGap(26, 26, 26)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(btnDelete1, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(btnDelete2, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(12, 12, 12)
-                        .addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(btnSave1, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(63, Short.MAX_VALUE))
+                            .addComponent(jLabel6)
+                            .addComponent(Lokasi, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(26, 26, 26)
+                                .addComponent(jLabel8)
+                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(23, 23, 23)
+                                .addComponent(Keterangan, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 51, Short.MAX_VALUE)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(btnTambah, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(btnDelete, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(18, 18, 18)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(btnDelete1, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(btnDelete2, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(12, 12, 12)
+                                .addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(Cetak, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(196, 196, 196))))))
         );
-
-        btnDelete1.getAccessibleContext().setAccessibleName("Clear");
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -307,23 +413,31 @@ public class ZeroWaste extends javax.swing.JFrame {
 
     private void btnTambahActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTambahActionPerformed
       
-    String nama = NamaBahan.getText();
-        int jumlah = (int) spinnerJumlah.getValue();
-        java.util.Date utilDate = dateChooserKadaluarsa.getDate();
+        String nama       = NamaBahan.getText().trim();
+        String jenis      = JenisBahan.getText().trim();
+        int jumlahVal     = (int) spinnerJumlah.getValue();
+        String satuan     = Satuan.getText().trim();
+        java.util.Date ud = dateChooserKadaluarsa.getDate(); 
+        String tKadar     = (ud != null) ? new java.sql.Date(ud.getTime()).toString() : "";
+        String lokasi     = Lokasi.getText().trim();
+        String keterangan = Keterangan.getText().trim();
 
-        if (nama.isEmpty() || utilDate == null) {
-            JOptionPane.showMessageDialog(this, "Nama bahan dan tanggal kadaluarsa harus diisi");
+        if (nama.isEmpty() || jenis.isEmpty() || satuan.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                "Nama, Jenis, dan Satuan bahan harus diisi",
+                "Validasi", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        String tanggal = new java.sql.Date(utilDate.getTime()).toString();
-        tambahData(nama, jumlah, tanggal);
+        tambahData(nama, jenis, jumlahVal, satuan, tKadar, lokasi, keterangan);
 
         NamaBahan.setText("");
+        JenisBahan.setText("");
         spinnerJumlah.setValue(0);
+        Satuan.setText("");
         dateChooserKadaluarsa.setDate(null);
-
-
+        Lokasi.setText("");
+        Keterangan.setText("");
     }//GEN-LAST:event_btnTambahActionPerformed
 
     private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
@@ -337,82 +451,220 @@ public class ZeroWaste extends javax.swing.JFrame {
     }//GEN-LAST:event_btnDeleteActionPerformed
 
     private void btnClear(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClear
-        NamaBahan.setText("");
-        spinnerJumlah.setValue(0);
-        dateChooserKadaluarsa.setDate(null);
+
+    NamaBahan.setText("");
+    JenisBahan.setText("");
+    spinnerJumlah.setValue(0);
+    Satuan.setText("");
+    dateChooserKadaluarsa.setDate(null);
+    Lokasi.setText("");
+    Keterangan.setText("");
+
+    idYangSedangDiedit = null;
     }//GEN-LAST:event_btnClear
 private Integer idYangSedangDiedit = null;
     private void btnEdit(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEdit
-            int row = tabelStok.getSelectedRow();
+                       
+    int row = tabelStok.getSelectedRow();
     if (row == -1) {
         JOptionPane.showMessageDialog(this, "Pilih baris dari tabel yang ingin diedit");
         return;
     }
-
-    String idStr = tabelStok.getValueAt(row, 0).toString();
-    String nama = tabelStok.getValueAt(row, 1).toString();
-    String jumlahStr = tabelStok.getValueAt(row, 2).toString();
-    String tanggalStr = tabelStok.getValueAt(row, 3).toString();
+    String idStr        = tabelStok.getValueAt(row, 0).toString();
+    String nama         = tabelStok.getValueAt(row, 1).toString();
+    String jenis        = tabelStok.getValueAt(row, 2).toString();
+    String jumlahStr    = tabelStok.getValueAt(row, 3).toString();
+    String satuan       = tabelStok.getValueAt(row, 4).toString();
+    String tanggalMasuk = tabelStok.getValueAt(row, 5).toString(); 
+    String tanggalKadal = tabelStok.getValueAt(row, 6).toString();
+    String lokasi       = tabelStok.getValueAt(row, 7).toString();
+    String keterangan   = tabelStok.getValueAt(row, 8).toString();
 
     idYangSedangDiedit = Integer.parseInt(idStr);
-    NamaBahan.setText(nama);
-    spinnerJumlah.setValue(Integer.parseInt(jumlahStr));
 
-    // Konversi String ke java.util.Date
+    NamaBahan.setText(nama);
+    JenisBahan.setText(jenis);
+
     try {
-        java.util.Date tanggal = java.sql.Date.valueOf(tanggalStr);
-        dateChooserKadaluarsa.setDate(tanggal);
-    } catch (IllegalArgumentException e) {
+        spinnerJumlah.setValue(Integer.parseInt(jumlahStr));
+    } catch (NumberFormatException ex) {
+        spinnerJumlah.setValue(0);
+    }
+
+    Satuan.setText(satuan);
+
+    if (tanggalKadal != null && !tanggalKadal.trim().isEmpty()) {
+        try {
+            java.util.Date tKadaluDate = java.sql.Date.valueOf(tanggalKadal);
+            dateChooserKadaluarsa.setDate(tKadaluDate);
+        } catch (IllegalArgumentException ex) {
+            dateChooserKadaluarsa.setDate(null);
+        }
+    } else {
         dateChooserKadaluarsa.setDate(null);
     }
 
+    Lokasi.setText(lokasi);
+    Keterangan.setText(keterangan);  
     }//GEN-LAST:event_btnEdit
+private void updateData(
+        int id, 
+        String nama, 
+        String jenis, 
+        int jumlah, 
+        String satuan, 
+        String kadaluarsa, 
+        String lokasi, 
+        String keterangan
+) {
+    try {
+        String sql = "UPDATE stok_bahan SET "
+                   + "nama_bahan = ?, "
+                   + "jenis_bahan = ?, "
+                   + "jumlah = ?, "
+                   + "satuan = ?, "
+                   + "kadaluarsa = ?, "
+                   + "lokasi = ?, "
+                   + "keterangan = ? "
+                   + "WHERE id = ?";
+        PreparedStatement pst = conn.prepareStatement(sql);
+        pst.setString(1, nama);
+        pst.setString(2, jenis);
+        pst.setInt(3, jumlah);
+        pst.setString(4, satuan);
 
+        if (kadaluarsa != null && !kadaluarsa.isEmpty()) {
+            pst.setDate(5, Date.valueOf(kadaluarsa));
+        } else {
+            pst.setNull(5, java.sql.Types.DATE);
+        }
+
+        pst.setString(6, lokasi);
+        pst.setString(7, keterangan);
+        pst.setInt(8, id);
+
+        pst.executeUpdate();
+        pst.close();
+
+        loadData();
+        JOptionPane.showMessageDialog(this, "Data berhasil diupdate");
+    } catch (SQLException e) {
+        JOptionPane.showMessageDialog(this, "Gagal update data:\n" + e.getMessage());
+    }
+}
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
-            String nama = NamaBahan.getText();
-    int jumlah = (int) spinnerJumlah.getValue();
-    java.util.Date utilDate = dateChooserKadaluarsa.getDate();
 
-    if (nama.isEmpty() || utilDate == null) {
-        JOptionPane.showMessageDialog(this, "Nama bahan dan tanggal kadaluarsa harus diisi");
+    String nama       = NamaBahan.getText().trim();
+    String jenis      = JenisBahan.getText().trim();
+    int jumlahVal     = (int) spinnerJumlah.getValue();
+    String satuan     = Satuan.getText().trim();
+
+    java.util.Date ud = dateChooserKadaluarsa.getDate();
+    String tKadar     = (ud != null) 
+            ? new java.sql.Date(ud.getTime()).toString() 
+            : "";
+
+    String lokasi     = Lokasi.getText().trim();
+    String keterangan = Keterangan.getText().trim();
+
+    if (nama.isEmpty() || jenis.isEmpty() || satuan.isEmpty()) {
+        JOptionPane.showMessageDialog(this,
+            "Nama, Jenis, dan Satuan bahan harus diisi",
+            "Validasi", JOptionPane.WARNING_MESSAGE);
         return;
     }
 
-    String tanggal = new java.sql.Date(utilDate.getTime()).toString();
-
     if (idYangSedangDiedit != null) {
-        // Mode update
-        try {
-            String sql = "UPDATE stok_bahan SET nama_bahan = ?, jumlah = ?, kadaluarsa = ? WHERE id = ?";
-            PreparedStatement pst = conn.prepareStatement(sql);
-            pst.setString(1, nama);
-            pst.setInt(2, jumlah);
-            pst.setDate(3, java.sql.Date.valueOf(tanggal));
-            pst.setInt(4, idYangSedangDiedit);
-            pst.executeUpdate();
-            pst.close();
-
-            JOptionPane.showMessageDialog(this, "Data berhasil diupdate");
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Gagal update data:\n" + e.getMessage());
-        }
-
+        updateData(
+            idYangSedangDiedit,
+            nama,
+            jenis,
+            jumlahVal,
+            satuan,
+            tKadar,
+            lokasi,
+            keterangan
+        );
         idYangSedangDiedit = null;
     } else {
-        // Mode tambah
-        tambahData(nama, jumlah, tanggal);
+        tambahData(nama, jenis, jumlahVal, satuan, tKadar, lokasi, keterangan);
     }
 
-    loadData();
     NamaBahan.setText("");
+    JenisBahan.setText("");
     spinnerJumlah.setValue(0);
+    Satuan.setText("");
     dateChooserKadaluarsa.setDate(null);
-
+    Lokasi.setText("");
+    Keterangan.setText("");
     }//GEN-LAST:event_btnSaveActionPerformed
 
     private void btnCetak(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCetak
-        // TODO add your handling code here:
+       try {
+            XWPFDocument doc = new XWPFDocument();
+
+            // Buat judul
+            XWPFParagraph para = doc.createParagraph();
+            XWPFRun run = para.createRun();
+            run.setText("Laporan Data Stok Bahan");
+            run.setBold(true);
+            run.setFontSize(16);
+            para.setSpacingAfter(200);
+
+            int rowCount = tabelStok.getRowCount();
+            int colCount = tabelStok.getColumnCount();
+
+            // Buat tabel di dokumen
+            XWPFTable table = doc.createTable(rowCount + 1, colCount);
+
+            // Isi header
+            for (int col = 0; col < colCount; col++) {
+                table.getRow(0).getCell(col).setText(tabelStok.getColumnName(col));
+            }
+
+            // Isi data
+            for (int row = 0; row < rowCount; row++) {
+                for (int col = 0; col < colCount; col++) {
+                    table.getRow(row + 1).getCell(col)
+                         .setText(tabelStok.getValueAt(row, col).toString());
+                }
+            }
+
+            String fileName = "LaporanStok.docx";
+            FileOutputStream out = new FileOutputStream(fileName);
+            doc.write(out);
+            out.close();
+            doc.close();
+
+            JOptionPane.showMessageDialog(this,
+                "Dokumen Word berhasil disimpan sebagai '" + fileName + "'");
+            Desktop.getDesktop().open(new File(fileName));
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                "Gagal menyimpan dokumen Word: " + e.getMessage());
+        }
     }//GEN-LAST:event_btnCetak
+
+    private void JenisBahanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_JenisBahanActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_JenisBahanActionPerformed
+
+    private void ExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ExitActionPerformed
+        this.dispose();        // TODO add your handling code here:
+    }//GEN-LAST:event_ExitActionPerformed
+
+    private void SatuanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SatuanActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_SatuanActionPerformed
+
+    private void LokasiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_LokasiActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_LokasiActionPerformed
+
+    private void KeteranganActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_KeteranganActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_KeteranganActionPerformed
 
     /**
      * @param args the command line arguments
@@ -432,18 +684,27 @@ private Integer idYangSedangDiedit = null;
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton Cetak;
+    private javax.swing.JButton Exit;
+    private javax.swing.JTextField JenisBahan;
+    private javax.swing.JTextField Keterangan;
+    private javax.swing.JTextField Lokasi;
     private javax.swing.JTextField NamaBahan;
+    private javax.swing.JTextField Satuan;
     private javax.swing.JButton btnDelete;
     private javax.swing.JButton btnDelete1;
     private javax.swing.JButton btnDelete2;
     private javax.swing.JButton btnSave;
-    private javax.swing.JButton btnSave1;
     private javax.swing.JButton btnTambah;
     private com.toedter.calendar.JDateChooser dateChooserKadaluarsa;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSpinner spinnerJumlah;
