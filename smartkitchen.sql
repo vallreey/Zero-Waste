@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 29, 2025 at 02:57 PM
+-- Generation Time: Jun 01, 2025 at 07:00 PM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.0.30
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -32,17 +32,21 @@ CREATE TABLE `stok_bahan` (
   `nama_bahan` varchar(100) NOT NULL,
   `jumlah` int(11) NOT NULL,
   `kadaluarsa` date NOT NULL,
-  `jenis_bahan` varchar(255) NOT NULL
+  `jenis_bahan` varchar(255) NOT NULL,
+  `satuan` varchar(100) NOT NULL,
+  `lokasi` varchar(50) NOT NULL,
+  `tanggal_masuk` date DEFAULT current_timestamp(),
+  `keterangan` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `stok_bahan`
 --
 
-INSERT INTO `stok_bahan` (`id`, `nama_bahan`, `jumlah`, `kadaluarsa`, `jenis_bahan`) VALUES
-(1, 'ikan', 1, '2025-12-31', ''),
-(2, 'ayam 1kg', 2, '2025-06-01', ''),
-(3, 'ayam 1kg', 5, '2025-05-30', '');
+INSERT INTO `stok_bahan` (`id`, `nama_bahan`, `jumlah`, `kadaluarsa`, `jenis_bahan`, `satuan`, `lokasi`, `tanggal_masuk`, `keterangan`) VALUES
+(8, 'AYam', 5, '2025-06-06', 'Contoh : Sayur. Buah, Dll', 'as', 'RUmah', '2025-06-01', 'qweqweqweqweqwe'),
+(9, 'Kangkung', 15, '2025-06-06', 'Sayur', 'Batang', 'Kulkas', '2025-06-01', 'Ini makanan ya'),
+(10, 'Kangkung', 13, '2025-06-06', 'Sayur', 'Batang', 'Kulkas', '2025-06-01', 'Ini makanan ya');
 
 --
 -- Indexes for dumped tables
@@ -62,7 +66,7 @@ ALTER TABLE `stok_bahan`
 -- AUTO_INCREMENT for table `stok_bahan`
 --
 ALTER TABLE `stok_bahan`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
