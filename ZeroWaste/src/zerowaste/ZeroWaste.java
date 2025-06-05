@@ -208,8 +208,18 @@ public class ZeroWaste extends BaseApp {
         Exit.setText("Exit");
         Exit.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                ExitActionPerformed(evt);
+                int pilihan = JOptionPane.showConfirmDialog(
+                null,
+                "Yakin keluar dari aplikasi?",
+                "Konfirmasi Keluar",
+                JOptionPane.YES_NO_OPTION
+            );
+
+            if (pilihan == JOptionPane.YES_OPTION) {
+                JOptionPane.showMessageDialog(null, "Terima Kasih");
+                System.exit(0);
             }
+        }
         });
 
         jLabel6.setText("Tempat Menyimpan");
